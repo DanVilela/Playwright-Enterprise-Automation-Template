@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Test results and reports
+results.xml
+test-results/
+playwright-report/
+.playwright/
+
+# Browser installation
+browsers/
+
+# IDE and editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.iml
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Build and distribution
+dist/
+build/
+.next/
+
+# CI/CD
+.github/secrets.json
+
+# OS
+Thumbs.db
+.DS_Store
