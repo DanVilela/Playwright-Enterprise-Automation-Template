@@ -1,0 +1,98 @@
+name: 🎭 Playwright Tests & Xray Upload
+
+# Trigger configuration
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+# Environment variables available to all jobs
+env:
+  NODE_VERSION: 20
+  BROWSERS: chromium
+
+jobs:
+  test:
+    name: Run Playwright Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # 1. Checkout repository
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Setup Node.js
+      - name: 📱 Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      # 3. Install dependencies
+      - name: 📚 Install dependencies
+        run: cd playwright-xray-ci-template && npm ci
+
+      # 4. Install Playwright browsers
+      - name: 🌐 Install Playwright browsers
+        run: cd playwright-xray-ci-template && npx playwright install --with-deps ${{ env.BROWSERS }}
+
+      # 5. Run tests with JUnit reporter (optimized for Xray - no heavy artifacts)
+      - name: 🧪 Run Playwright tests
+        run: cd playwright-xray-ci-template && npm run test:xray
+        env:
+          BASE_URL: https://www.saucedemo.com
+          XRAY_UPLOAD: true
+
+      # 6. Upload test results as artifact
+      - name: 📤 Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-xray-ci-template/playwright-report/
+          retention-days: 30
+
+      # 7. Upload JUnit results to Xray Cloud
+      - name: 🔗 Upload results to Xray Cloud
+        if: always()
+        run: cd playwright-xray-ci-template && npm run xray:upload
+        env:
+          XRAY_CLIENT_ID: ${{ secrets.XRAY_CLIENT_ID }}
+          XRAY_CLIENT_SECRET: ${{ secrets.XRAY_CLIENT_SECRET }}
+        continue-on-error: true
+
+      # 8. Publish test report
+      - name: 📊 Publish test report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Playwright Test Results
+          path: playwright-xray-ci-template/results.xml
+          reporter: java-junit
+
+      # 9. Add workflow status comment to PR
+      - name: 💬 Comment PR with test results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const testResults = fs.readFileSync('playwright-xray-ci-template/results.xml', 'utf8');
+            const passCount = (testResults.match(/testcase/g) || []).length;
+            const failCount = (testResults.match(/failure/g) || []).length;
+            
+            const comment = `## 🧪 Test Results
+            - ✅ Passed: ${passCount - failCount}
+            - ❌ Failed: ${failCount}
+            
+            [View full report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
