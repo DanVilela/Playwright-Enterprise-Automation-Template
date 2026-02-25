@@ -9,7 +9,7 @@ on:
 
 # Environment variables available to all jobs
 env:
-  NODE_VERSION: 18
+  NODE_VERSION: 20
   BROWSERS: chromium
 
 jobs:
