@@ -11,8 +11,9 @@
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
     "test:report": "playwright show-report",
+    "test:xray": "cross-env XRAY_UPLOAD=true playwright test",
     "xray:upload": "node utils/xray-upload.js",
-    "ci": "playwright test && npm run xray:upload"
+    "ci": "npm run test:xray && npm run xray:upload"
   },
   "keywords": [
     "playwright",
@@ -25,7 +26,8 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@playwright/test": "^1.40.0"
+    "@playwright/test": "^1.40.0",
+    "cross-env": "^10.1.0"
   },
   "dependencies": {
     "axios": "^1.6.0",

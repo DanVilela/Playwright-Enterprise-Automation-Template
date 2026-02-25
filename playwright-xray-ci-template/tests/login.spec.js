@@ -22,7 +22,7 @@ test.describe('Authentication', () => {
     await loginPage.navigateToLogin();
   });
 
-  test('@smoke XRAY-1 Valid login', async ({ page }) => {
+  test('@smoke SCRUM-1 Valid login', async ({ page }) => {
     // Given: I am on the login page
     await expect(loginPage.page.locator(loginPage.loginContainer)).toBeVisible();
 
@@ -38,7 +38,7 @@ test.describe('Authentication', () => {
     ).toBeVisible();
   });
 
-  test('@regression XRAY-3 Invalid login attempts', async ({ page }) => {
+  test('@regression SCRUM-5 Invalid login attempts', async ({ page }) => {
     // Given: I am on the login page
     await expect(loginPage.page.locator(loginPage.loginContainer)).toBeVisible();
 
@@ -54,7 +54,7 @@ test.describe('Authentication', () => {
     expect(errorText).toContain('Username and password do not match');
   });
 
-  test('@critical XRAY-4 Locked user login', async ({ page }) => {
+  test('@critical SCRUM-6 Locked user login', async ({ page }) => {
     // Given: I am on the login page
     await expect(loginPage.page.locator(loginPage.loginContainer)).toBeVisible();
 

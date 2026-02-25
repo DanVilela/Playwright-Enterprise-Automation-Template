@@ -38,11 +38,12 @@ jobs:
       - name: 🌐 Install Playwright browsers
         run: npx playwright install --with-deps ${{ env.BROWSERS }}
 
-      # 5. Run tests with JUnit reporter
+      # 5. Run tests with JUnit reporter (optimized for Xray - no heavy artifacts)
       - name: 🧪 Run Playwright tests
-        run: npm run test
+        run: npm run test:xray
         env:
           BASE_URL: https://www.saucedemo.com
+          XRAY_UPLOAD: true
 
       # 6. Upload test results as artifact
       - name: 📤 Upload test results

@@ -40,9 +40,10 @@ export default defineConfig({
     baseURL: process.env.BASE_URL || 'https://www.saucedemo.com',
     
     /* Network and browser settings */
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    /* Disable heavy artifacts for Xray upload to keep XML small */
+    trace: process.env.XRAY_UPLOAD ? 'off' : 'on-first-retry',
+    screenshot: process.env.XRAY_UPLOAD ? 'off' : 'only-on-failure',
+    video: process.env.XRAY_UPLOAD ? 'off' : 'retain-on-failure',
     
     /* Request parameters */
     actionTimeout: 5 * 1000,

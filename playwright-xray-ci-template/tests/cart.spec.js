@@ -35,7 +35,7 @@ test.describe('Shopping Cart', () => {
     ).toBeVisible();
   });
 
-  test('@regression XRAY-2 Add product to cart', async ({ page }) => {
+  test('@regression [SCRUM-2] Add product to cart', async ({ page }) => {
     // Given: I am on the products page
     const initialCount = await productsPage.getProductCount();
     expect(initialCount).toBeGreaterThan(0);
@@ -53,7 +53,7 @@ test.describe('Shopping Cart', () => {
     expect(cartBadgeText).toBe('1');
   });
 
-  test('@regression XRAY-5 View cart and verify item', async ({ page }) => {
+  test('@regression SCRUM-7 View cart and verify item', async ({ page }) => {
     // Given: I have added a product to cart
     await productsPage.addProductToCart(testProducts.backpackIndex);
     await expect(
@@ -69,7 +69,7 @@ test.describe('Shopping Cart', () => {
     expect(cartItemCount).toBe(1);
   });
 
-  test('@regression XRAY-6 Remove product from cart', async ({ page }) => {
+  test('@regression SCRUM-8 Remove product from cart', async ({ page }) => {
     // Given: I have a product in the cart
     await productsPage.addProductToCart(testProducts.backpackIndex);
     await productsPage.goToCart();

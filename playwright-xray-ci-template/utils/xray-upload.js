@@ -15,6 +15,9 @@
  * - XRAY_CLIENT_SECRET
  */
 
+import dotenv from 'dotenv';
+dotenv.config();
+
 import { XrayClient } from './XrayClient.js';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
