@@ -8,6 +8,7 @@
     "test:smoke": "playwright test --grep @smoke",
     "test:regression": "playwright test --grep @regression",
     "test:debug": "playwright test --debug",
+    "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
     "test:report": "playwright show-report",
     "xray:upload": "node utils/xray-upload.js",
