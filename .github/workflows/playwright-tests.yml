@@ -98,9 +98,9 @@ jobs:
           script: |
             const fs = require('fs');
             const path = 'playwright-xray-ci-template/results.xml';
-            
+
             if (!fs.existsSync(path)) {
-              github.rest.issues.createComment({
+              await github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -108,20 +108,20 @@ jobs:
               });
               return;
             }
-            
+
             const testResults = fs.readFileSync(path, 'utf8');
             const passCount = (testResults.match(/testcase/g) || []).length;
             const failCount = (testResults.match(/failure/g) || []).length;
-            const repoUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}`;
-            const runUrl = `${repoUrl}/actions/runs/${github.context.runId}`;
-            
-            const comment = `## 🧪 Test Results
-- ✅ Passed: ${passCount - failCount}
-- ❌ Failed: ${failCount}
 
-[View full report](${runUrl})`;
-            
-            github.rest.issues.createComment({
+            // Build run URL using environment variables to avoid YAML expression conflicts
+            const serverUrl = process.env.GITHUB_SERVER_URL || 'https://github.com';
+            const repository = process.env.GITHUB_REPOSITORY || `${context.repo.owner}/${context.repo.repo}`;
+            const runId = process.env.GITHUB_RUN_ID || context.runId || github.context.runId;
+            const runUrl = `${serverUrl}/${repository}/actions/runs/${runId}`;
+
+            const comment = `## 🧪 Test Results\n- ✅ Passed: ${passCount - failCount}\n- ❌ Failed: ${failCount}\n\n[View full report](${runUrl})`;
+
+            await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
