@@ -92,6 +92,7 @@ jobs:
       - name: 💬 Comment PR with test results
         if: github.event_name == 'pull_request' && always()
         uses: actions/github-script@v7
+        continue-on-error: true
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -111,12 +112,14 @@ jobs:
             const testResults = fs.readFileSync(path, 'utf8');
             const passCount = (testResults.match(/testcase/g) || []).length;
             const failCount = (testResults.match(/failure/g) || []).length;
+            const repoUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}`;
+            const runUrl = `${repoUrl}/actions/runs/${github.context.runId}`;
             
             const comment = `## 🧪 Test Results
 - ✅ Passed: ${passCount - failCount}
 - ❌ Failed: ${failCount}
 
-[View full report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
+[View full report](${runUrl})`;
             
             github.rest.issues.createComment({
               issue_number: context.issue.number,
@@ -124,5 +127,4 @@ jobs:
               repo: context.repo.repo,
               body: comment
             });
-        continue-on-error: true
 
