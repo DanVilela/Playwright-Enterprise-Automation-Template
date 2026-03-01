@@ -41,7 +41,6 @@ export class XrayClient {
 
     const tests = [];
 
-    // Divide o XML por blocos de testcase
     const testcaseParts = xml.split('<testcase');
 
     for (let part of testcaseParts) {
@@ -57,7 +56,6 @@ export class XrayClient {
 
       const testKey = keyMatch[1];
 
-      // Se o bloco do teste contém <failure>, é FAILED
       const status = part.includes('<failure') ? 'FAILED' : 'PASSED';
 
       tests.push({ testKey, status });
@@ -67,8 +65,15 @@ export class XrayClient {
       throw new Error('No valid test keys found in results.xml');
     }
 
+    const now = new Date();
+    const timestamp = now.toISOString();
+
     const payload = {
-      testExecutionKey: 'XRAY-2', // 🔁 Ajuste se necessário
+      info: {
+        summary: `Automated Execution - ${timestamp}`,
+        description: 'Execution generated automatically from Playwright',
+        project: 'XRAY',
+      },
       tests,
     };
 
@@ -87,7 +92,9 @@ export class XrayClient {
         }
       );
 
-      console.log('✅ Upload successful!');
+      console.log('✅ Execution created successfully!');
+      console.log('🆕 New Test Execution:', response.data.key);
+
       return response.data;
     } catch (error) {
       console.error('❌ XRAY ERROR RESPONSE:');
