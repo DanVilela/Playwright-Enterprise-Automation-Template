@@ -6,6 +6,17 @@ on:
   pull_request:
     branches: [main, develop]
 
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: 'Choose test suite'
+        required: true
+        default: smoke
+        type: choice
+        options:
+          - smoke
+          - full
+
 env:
   NODE_VERSION: 20
   BROWSERS: chromium
@@ -22,7 +33,7 @@ jobs:
         uses: actions/checkout@v4
 
       # 2️⃣ Setup Node
-      - name: 📱 Setup Node.js ${{ env.NODE_VERSION }}
+      - name: 📱 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -40,18 +51,21 @@ jobs:
       - name: 🧠 Define test suite
         id: suite
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "suite=${{ github.event.inputs.suite }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" = "refs/heads/main" ]; then
             echo "suite=full" >> $GITHUB_OUTPUT
           else
             echo "suite=smoke" >> $GITHUB_OUTPUT
           fi
 
       # 6️⃣ Run tests
-      - name: 🧪 Run ${{ steps.suite.outputs.suite }} tests
+      - name: 🧪 Run tests
         run: |
           cd playwright-xray-ci-template
-          if [[ "${{ steps.suite.outputs.suite }}" == "full" ]]; then
-            npm run test:full
+          echo "Running suite: ${{ steps.suite.outputs.suite }}"
+          if [ "${{ steps.suite.outputs.suite }}" = "full" ]; then
+            npm run test
           else
             npm run test:smoke
           fi
@@ -59,7 +73,7 @@ jobs:
           BASE_URL: https://www.saucedemo.com
         continue-on-error: true
 
-      # 7️⃣ Upload report artifact
+      # 7️⃣ Upload HTML report
       - name: 📤 Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
@@ -68,7 +82,7 @@ jobs:
           path: playwright-xray-ci-template/playwright-report/
           retention-days: 30
 
-      # 8️⃣ Publish JUnit results in GitHub UI
+      # 8️⃣ Publish JUnit results
       - name: 📊 Publish JUnit report
         if: always()
         uses: dorny/test-reporter@v1
@@ -79,7 +93,7 @@ jobs:
           fail-on-error: false
         continue-on-error: true
 
-      # 9️⃣ Upload to Xray (creates execution automatically)
+      # 9️⃣ Upload to Xray
       - name: 🔗 Upload results to Xray Cloud
         if: always()
         run: |
@@ -117,13 +131,13 @@ jobs:
             const runUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
 
             const comment = `
-            ## 🧪 Test Results
+## 🧪 Test Results
 
-            - ✅ Passed: ${passed}
-            - ❌ Failed: ${failed}
+- ✅ Passed: ${passed}
+- ❌ Failed: ${failed}
 
-            [View full workflow run](${runUrl})
-            `;
+[View full workflow run](${runUrl})
+`;
 
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
