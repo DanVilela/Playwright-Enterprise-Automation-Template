@@ -5,15 +5,17 @@
   "type": "module",
   "scripts": {
     "test": "playwright test",
-    "test:smoke": "playwright test --grep @smoke",
-    "test:regression": "playwright test --grep @regression",
+    "test:smoke": "playwright test --grep @smoke --reporter=junit",
+    "test:regression": "playwright test --grep @regression --reporter=junit",
+    "test:full": "playwright test --reporter=junit",
     "test:debug": "playwright test --debug",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
     "test:report": "playwright show-report",
-    "test:xray": "cross-env XRAY_UPLOAD=true playwright test",
     "xray:upload": "node utils/xray-upload.js",
-    "ci": "npm run test:xray && npm run xray:upload"
+    "ci:smoke": "npm run test:smoke && TEST_TYPE=SMOKE npm run xray:upload",
+    "ci:regression": "npm run test:regression && TEST_TYPE=REGRESSION npm run xray:upload",
+    "ci:full": "npm run test:full && TEST_TYPE=FULL npm run xray:upload"
   },
   "keywords": [
     "playwright",
