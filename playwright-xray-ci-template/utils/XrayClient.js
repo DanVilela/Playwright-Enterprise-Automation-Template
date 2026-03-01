@@ -1,18 +1,5 @@
 import axios from 'axios';
-
-/**
- * XrayClient - Handles authentication and API communication with Xray Cloud
- * 
- * Responsibilities:
- * - Generate Bearer token using client credentials
- * - Upload JUnit results to Xray Cloud
- * - Handle authentication errors
- * 
- * Architecture:
- * - Uses environment variables for secrets (never hardcoded)
- * - Implements Bearer token authentication
- * - Provides error handling and logging
- */
+import fs from 'fs';
 
 export class XrayClient {
   constructor() {
@@ -28,75 +15,84 @@ export class XrayClient {
     }
   }
 
-  /**
-   * Authenticate with Xray Cloud and get Bearer token
-   * @returns {Promise<string>} Bearer token
-   */
   async authenticate() {
-    try {
-      console.log('🔐 Authenticating with Xray Cloud...');
-      
-      const response = await axios.post(
-        `${this.baseURL}/authenticate`,
-        {
-          client_id: this.clientId,
-          client_secret: this.clientSecret,
-        }
-      );
+    console.log('🔐 Authenticating with Xray Cloud...');
 
-      this.token = response.data.token;
-      console.log('✅ Xray authentication successful');
-      return this.token;
-    } catch (error) {
-      console.error('❌ Xray authentication failed:', error.message);
-      throw new Error(`Xray authentication failed: ${error.message}`);
-    }
+    const response = await axios.post(
+      `${this.baseURL}/authenticate`,
+      {
+        client_id: this.clientId,
+        client_secret: this.clientSecret,
+      }
+    );
+
+    this.token = response.data;
+    console.log('✅ Xray authentication successful');
   }
 
-  /**
-   * Upload JUnit results to Xray Cloud
-   * @param {string} filePath - Path to results.xml file
-   * @returns {Promise<Object>} Upload response
-   */
   async uploadResults(filePath) {
+    if (!this.token) {
+      await this.authenticate();
+    }
+
+    console.log(`📤 Reading results from ${filePath}...`);
+
+    const xml = fs.readFileSync(filePath, 'utf8');
+
+    const tests = [];
+
+    // Divide o XML por blocos de testcase
+    const testcaseParts = xml.split('<testcase');
+
+    for (let part of testcaseParts) {
+      if (!part.includes('name="')) continue;
+
+      const nameMatch = part.match(/name="([^"]+)"/);
+      if (!nameMatch) continue;
+
+      const name = nameMatch[1];
+
+      const keyMatch = name.match(/\[([A-Z]+-\d+)\]/);
+      if (!keyMatch) continue;
+
+      const testKey = keyMatch[1];
+
+      // Se o bloco do teste contém <failure>, é FAILED
+      const status = part.includes('<failure') ? 'FAILED' : 'PASSED';
+
+      tests.push({ testKey, status });
+    }
+
+    if (tests.length === 0) {
+      throw new Error('No valid test keys found in results.xml');
+    }
+
+    const payload = {
+      testExecutionKey: 'XRAY-2', // 🔁 Ajuste se necessário
+      tests,
+    };
+
+    console.log('📦 Sending JSON to Xray:');
+    console.log(JSON.stringify(payload, null, 2));
+
     try {
-      if (!this.token) {
-        await this.authenticate();
-      }
-
-      console.log(`📤 Uploading results from ${filePath}...`);
-
-      const fs = await import('fs').then(m => m.default);
-      const resultsContent = fs.readFileSync(filePath, 'utf8');
-
       const response = await axios.post(
-        `${this.baseURL}/import/execution/junit`,
-        resultsContent,
+        `${this.baseURL}/import/execution`,
+        payload,
         {
           headers: {
-            'Authorization': `Bearer ${this.token}`,
-            'Content-Type': 'application/xml',
+            Authorization: `Bearer ${this.token}`,
+            'Content-Type': 'application/json',
           },
         }
       );
 
-      console.log('✅ Results uploaded successfully to Xray');
-      console.log(`Execution ID: ${response.data.id}`);
+      console.log('✅ Upload successful!');
       return response.data;
     } catch (error) {
-      console.error('❌ Failed to upload results:', error.message);
-      throw new Error(`Upload to Xray failed: ${error.message}`);
+      console.error('❌ XRAY ERROR RESPONSE:');
+      console.error(error.response?.data || error.message);
+      throw error;
     }
-  }
-
-  /**
-   * Get Bearer token (authenticates if needed)
-   * @returns {Promise<string>} Bearer token
-   */
-  async getToken() {
-    if (!this.token) {
-      await this.authenticate();
-    }
-    return this.token;
   }
 }

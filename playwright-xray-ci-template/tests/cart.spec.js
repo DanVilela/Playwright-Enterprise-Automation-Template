@@ -35,7 +35,7 @@ test.describe('Shopping Cart', () => {
     ).toBeVisible();
   });
 
-  test('@regression [SCRUM-2] Add product to cart', async ({ page }) => {
+  test('@regression Add product to cart [XRAY-1]', async ({ page }) => {
     // Given: I am on the products page
     const initialCount = await productsPage.getProductCount();
     expect(initialCount).toBeGreaterThan(0);
