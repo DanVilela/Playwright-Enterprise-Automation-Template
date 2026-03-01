@@ -29,7 +29,7 @@ export const testProducts = {
 };
 
 export const expectedMessages = {
-  lockedOutError: 'Sorry, this user has been locked out.',
+  lockedOutError: 'Sorry, this user has been locked out',
   invalidError: 'Username and password do not match any user in this service',
 };
 
