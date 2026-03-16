@@ -50,19 +50,25 @@ export class XrayClient {
       if (!nameMatch) continue;
 
       const name = nameMatch[1];
+      console.log(`  📝 Found test: ${name}`);
 
-      const keyMatch = name.match(/\[([A-Z]+-\d+)\]/);
-      if (!keyMatch) continue;
+      // Look for pattern [UPPERCASE-NUMBER]
+      const keyMatch = name.match(/\[([A-Z_]+-\d+)\]/);
+      if (!keyMatch) {
+        console.log(`     ⚠️  No key found in format [KEY-123]`);
+        continue;
+      }
 
       const testKey = keyMatch[1];
 
       const status = part.includes('<failure') ? 'FAILED' : 'PASSED';
+      console.log(`     ✅ Extracted key: ${testKey} (${status})`);
 
       tests.push({ testKey, status });
     }
 
     if (tests.length === 0) {
-      throw new Error('No valid test keys found in results.xml');
+      throw new Error('No valid test keys found in results.xml. Check the test names contain [KEY-NUMBER] format.');
     }
 
     const now = new Date();

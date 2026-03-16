@@ -29,7 +29,7 @@ export default defineConfig({
 
   /* Report settings */
   reporter: [
-    ['junit', { outputFile: 'results.xml' }],
+    ['junit', { outputFile: './results.xml' }],
     ['html'],
     ['list'],
   ],
