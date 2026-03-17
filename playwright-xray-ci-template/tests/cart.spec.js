@@ -35,7 +35,7 @@ test.describe('Shopping Cart', () => {
     ).toBeVisible();
   });
 
-  test('@regression [XRAY-1] Add product to cart', async ({ page }) => {
+  test('Add product to cart [XRAY-1] @regression', async ({ page }) => {
     // Given: I am on the products page
     const initialCount = await productsPage.getProductCount();
     expect(initialCount).toBeGreaterThan(0);
@@ -53,7 +53,7 @@ test.describe('Shopping Cart', () => {
     expect(cartBadgeText).toBe('1');
   });
 
-  test('@regression [XRAY-7] View cart and verify item', async ({ page }) => {
+  test('View cart and verify item [XRAY-7] @regression', async ({ page }) => {
     // Given: I have added a product to cart
     await productsPage.addProductToCart(testProducts.backpackIndex);
     await expect(
@@ -69,7 +69,7 @@ test.describe('Shopping Cart', () => {
     expect(cartItemCount).toBe(1);
   });
 
-  test('@regression @smoke [XRAY-2] Remove product from cart', async ({ page }) => {
+  test('Remove product from cart [XRAY-2] @smoke @regression', async ({ page }) => {
     // Given: I have a product in the cart
     await productsPage.addProductToCart(testProducts.backpackIndex);
     await productsPage.goToCart();
